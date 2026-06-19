@@ -4,7 +4,7 @@
  */
 
 export interface Env {
-  DB: D1Database;
+  yks_tahmincim_db: D1Database;
 }
 
 const CORS = {
@@ -53,7 +53,7 @@ export default {
     if (path === "/api/predictions") {
       const field = qs.get("field") ?? "";
       if (!VALID_FIELDS.includes(field)) return err(`Geçersiz alan: ${field}`);
-      return await getPredictions(env.DB, field);
+      return await getPredictions(env.yks_tahmincim_db, field);
     }
 
     // GET /api/predictions/subject?field=SAYISAL&subject=Matematik
@@ -61,7 +61,7 @@ export default {
       const field   = qs.get("field") ?? "";
       const subject = qs.get("subject") ?? "";
       if (!VALID_FIELDS.includes(field)) return err(`Geçersiz alan: ${field}`);
-      return await getSubjectPredictions(env.DB, field, subject);
+      return await getSubjectPredictions(env.yks_tahmincim_db, field, subject);
     }
 
     // GET /api/topic-detail?session=AYT&field=SAYISAL&subject=Fizik&topic=Manyetizma
@@ -70,7 +70,7 @@ export default {
       const field   = qs.get("field")   ?? "";
       const subject = qs.get("subject") ?? "";
       const topic   = qs.get("topic")   ?? "";
-      return await getTopicDetail(env.DB, session, field, subject, topic);
+      return await getTopicDetail(env.yks_tahmincim_db, session, field, subject, topic);
     }
 
     // GET /api/yearly-distribution?session=AYT&field=SAYISAL&subject=Fizik&topic=Manyetizma
@@ -79,7 +79,7 @@ export default {
       const field   = qs.get("field")   ?? "";
       const subject = qs.get("subject") ?? "";
       const topic   = qs.get("topic")   ?? "";
-      return await getYearlyDistribution(env.DB, session, field, subject, topic);
+      return await getYearlyDistribution(env.yks_tahmincim_db, session, field, subject, topic);
     }
 
     return err("Endpoint bulunamadı", 404);

@@ -4,6 +4,6 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
-binding = "DB"
+binding = "yks_tahmincim_db"
 database_name = "yks-tahmincim-db"
-database_id = "PLACEHOLDER"  # wrangler d1 create yks_predictions ile oluşturulacak
+database_id = "795ceb94-83a0-4ae9-a14b-b791ab2b53e7"
