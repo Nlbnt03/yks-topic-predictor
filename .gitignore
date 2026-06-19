@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.pkl
+
+# Node
+node_modules/
+.next/
+.env.local
+.env.production
+
+# Data - büyük dosyalar
+data/raw/*.csv
+outputs/*.csv
+
+# OS
+.DS_Store
