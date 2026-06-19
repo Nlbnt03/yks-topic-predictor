@@ -10,10 +10,16 @@ node_modules/
 .next/
 .env.local
 .env.production
+frontend/node_modules/
+worker/node_modules/
 
-# Data - büyük dosyalar
-data/raw/*.csv
-outputs/*.csv
+# Büyük veri dosyaları - rebuild ile yeniden üretilir
+data/raw/model_*.csv
+data/raw/model_prediction_input_2026.csv
+outputs/yks_2026_predictions.csv
+outputs/model_metrics.csv
+outputs/prediction_summary.json
 
 # OS
 .DS_Store
+Thumbs.db

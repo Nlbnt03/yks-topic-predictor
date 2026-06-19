@@ -1,9 +1,9 @@
-name = "yks-predictor-api"
+name = "yks-tahmincim"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "yks_predictions"
+database_name = "yks-tahmincim-db"
 database_id = "PLACEHOLDER"  # wrangler d1 create yks_predictions ile oluşturulacak

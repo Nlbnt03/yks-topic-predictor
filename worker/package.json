@@ -1,13 +1,13 @@
 {
-  "name": "yks-predictor-api",
+  "name": "yks-tahmincim",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev":    "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:create":  "wrangler d1 create yks_predictions",
-    "db:migrate:local":  "wrangler d1 execute yks_predictions --local --file=migrations/0001_seed.sql",
-    "db:migrate:remote": "wrangler d1 execute yks_predictions --remote --file=migrations/0001_seed.sql"
+    "db:create":  "wrangler d1 create yks-tahmincim-db",
+    "db:migrate:local":  "wrangler d1 execute yks-tahmincim-db --local --file=migrations/0001_seed.sql",
+    "db:migrate:remote": "wrangler d1 execute yks-tahmincim-db --remote --file=migrations/0001_seed.sql"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",
