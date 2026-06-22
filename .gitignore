@@ -1,30 +1,48 @@
-# Python
+# ─── Python ────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 .venv/
+venv/
 *.pkl
+*.egg-info/
+dist/
+build/
 
-# Node
+# ─── Node ──────────────────────────────────────────────────
 node_modules/
 .next/
+.env
 .env.local
 .env.production
+.env*.local
 frontend/node_modules/
 worker/node_modules/
 
-# Büyük veri dosyaları - rebuild ile yeniden üretilir
+# ─── Cloudflare gizli değerler ─────────────────────────────
+# wrangler.toml commit edilebilir (database_id hassas değil)
+# Ama worker secrets asla commit edilmemeli
+.wrangler/
+worker/.wrangler/
+
+# ─── Büyük / yeniden üretilebilir veri dosyaları ───────────
 data/raw/model_*.csv
 data/raw/model_prediction_input_2026.csv
 outputs/yks_2026_predictions.csv
 outputs/model_metrics.csv
 outputs/prediction_summary.json
+models/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Build artifacts
+# ─── Build artifacts ───────────────────────────────────────
 frontend/.vercel/
 frontend/.next/
 worker/.vercel/
+
+# ─── OS / IDE ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
