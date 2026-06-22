@@ -1,7 +1,10 @@
+import { setupDevPlatform } from "@cloudflare/next-on-pages/next-dev";
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Cloudflare Pages için output: 'export' değil, normal SSR kullan
-  // API istekleri doğrudan Workers URL'e gider
-};
+const nextConfig = {};
+
+if (process.env.NODE_ENV === "development") {
+  await setupDevPlatform();
+}
 
 export default nextConfig;

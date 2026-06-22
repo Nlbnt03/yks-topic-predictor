@@ -1,19 +1,36 @@
-# YKS Konu Bazlı Soru Dağılımı Tahmin Sistemi
+# YKS Konu Tahmin Rehberi 📊
 
-> **Önemli Uyarı:** Bu sistem kesin soru tahmini yapmaz. Geçmiş yıllardaki (2018-2025) konu dağılımlarına göre **tahmini soru aralığı**, **trend** ve **çalışma önceliği** üretir.
+**2018–2025 yıllarına dayalı YKS konu bazlı tahmini soru dağılımı, çalışma öncelikleri ve trend analizi.**
+
+🌐 **Canlı Site:** [yks-tahmincim.pages.dev](https://yks-tahmincim.pages.dev)
+
+> ⚠️ Bu sistem **kesin soru tahmini yapmaz.** Geçmiş yıl örüntülerine dayalı istatistiksel bir rehberdir. ÖSYM ile ilişkili değildir.
 
 ---
 
-## Projenin Amacı
+## Ne Yapar?
 
-YKS (TYT + AYT) sınavlarında 2018-2025 yılları arasında ölçülen konu bazlı soru dağılımlarını kullanarak 2026 yılı için:
+Kardeşim YKS'ye hazırlanırken "hangi konudan kaç soru çıkar?" sorusundan doğdu.
 
-- Her konu için **tahmini soru sayısı aralığı** (`lower_bound` – `upper_bound`)
-- **Önem skoru** (hangi konulara öncelik verilmeli)
-- **Trend etiketi** (artış / azalış / stabil)
-- **Güven düzeyi** (tarihi tutarlılık)
+- Her konu için **2026 tahmini soru sayısı** ve **aralığı** (alt–üst sınır)
+- **Önem skoru (0–100):** Geçmişte ne sıklıkla çıktı, trend ne yönde?
+- **Trend etiketi:** Artış / Azalış / Stabil
+- **Güven seviyesi:** Verinin kalitesine göre Yüksek / Orta / Düşük
+- **2018–2025 yıllık dağılım grafiği** her konu için
 
-üretmek ve öğrencinin alanına göre (SAYISAL / ESIT_AGIRLIK / SOZEL) kişiselleştirmektir.
+Kapsam: **TYT** (tüm alanlar) + **AYT** (Sayısal, Eşit Ağırlık, Sözel)
+
+---
+
+## Teknik Yığın
+
+```
+Veri Kaynağı  →  universitego.com (web scraping) + manuel doğrulama
+ML Modeli     →  Gradient Boosting (scikit-learn)  |  test MAE: 0.376
+Backend API   →  Cloudflare Workers (TypeScript) + D1 SQLite
+Frontend      →  Next.js 15 + TailwindCSS + Recharts
+Deploy        →  Cloudflare Pages + Workers (tamamen ücretsiz)
+```
 
 ---
 
@@ -21,184 +38,200 @@ YKS (TYT + AYT) sınavlarında 2018-2025 yılları arasında ölçülen konu baz
 
 ```
 yks-topic-predictor/
-├── data/
-│   ├── raw/                   # Ham veri dosyaları
-│   └── processed/             # İşlenmiş veriler
-├── notebooks/
-│   ├── 01_data_analysis.ipynb
-│   ├── 02_model_training.ipynb
-│   └── 03_prediction_2026.ipynb
-├── src/
-│   ├── config.py              # Yollar, sabitler, alan tanımları
-│   ├── feature_utils.py       # Özellik mühendisliği + önişleme
-│   ├── train_model.py         # Model eğitimi ve kaydetme
-│   ├── evaluate.py            # MAE / RMSE hesaplama
-│   └── predict_2026.py        # 2026 tahmin üretimi
-├── models/
-│   └── best_model.pkl         # En iyi eğitilmiş model
+├── src/                              # Python ML pipeline
+│   ├── scrape_and_build_dataset.py   # Veri toplama (universitego.com)
+│   ├── rebuild_from_raw.py           # Feature engineering + model eğitimi
+│   ├── feature_utils.py              # Lag, rolling mean, trend
+│   ├── train_model.py                # Model karşılaştırma (LR/RF/GB)
+│   └── config.py                     # Sabitler ve dosya yolları
+│
+├── data/raw/
+│   ├── yks_dataset.csv               # Ham veri (2813 soru, 2018–2025)
+│   └── topic_yearly_distribution_complete.csv
+│
 ├── outputs/
-│   ├── model_metrics.csv      # Model karşılaştırma tablosu
-│   ├── yks_2026_predictions.csv
-│   └── prediction_summary.json
-├── backend/
-│   ├── main.py                # FastAPI uygulaması
-│   ├── services/
-│   │   └── prediction_service.py
-│   └── requirements.txt
-└── frontend/                  # Next.js (yakında)
+│   └── yks_2026_predictions.csv      # 530 konu için 2026 tahminleri
+│
+├── worker/                           # Cloudflare Workers API (TypeScript)
+│   ├── src/index.ts                  # 6 REST endpoint, D1 sorguları
+│   ├── migrations/0001_seed.sql      # 530 tahmin + 4240 yıllık veri
+│   └── wrangler.toml
+│
+├── frontend/                         # Next.js 15 uygulaması
+│   ├── app/                          # Sayfalar (App Router)
+│   ├── components/                   # UI bileşenleri + Recharts grafikleri
+│   └── lib/                          # API istemcisi, tipler, utils
+│
+└── backend/                          # FastAPI (local geliştirme için)
+    ├── main.py
+    └── services/prediction_service.py
 ```
 
 ---
 
-## Dataset Yapısı
+## ML Pipeline
 
-| Dosya | Açıklama |
-|---|---|
-| `model_training_features_2019_2025.csv` | Tam özellik seti (2019-2025) |
-| `model_train_2019_2023.csv` | Eğitim verisi |
-| `model_valid_2024.csv` | Doğrulama verisi |
-| `model_test_2025.csv` | Test verisi |
-| `model_prediction_input_2026.csv` | 2026 tahmin girdisi |
-| `topic_yearly_distribution_complete.csv` | Konu bazlı yıllık dağılım |
-
-**Hedef kolon:** `target_total_question_count`
-
-**Temel özellikler:**
-- `lag_1 / lag_2 / lag_3` — gecikmeli soru sayıları
-- `rolling_mean_2_prev / rolling_mean_3_prev` — hareketli ortalamalar
-- `historical_mean_prev / historical_std_prev` — tarihsel istatistikler
-- `nonzero_frequency_prev` — konunun kaç yılda soru çıkma oranı
-- `trend_slope_prev` — lineer trend eğimi
-- `historical_confidence_mean_prev` — tarihsel güven skoru
-
----
-
-## Neden Yıl Bazlı Split?
-
-YKS verisi **zamana bağımlıdır (time-series)**. Random split kullanmak veri sızıntısına (data leakage) neden olur çünkü 2024-2025 verisi 2019-2023'teki örüntüleri içerebilir. Bu nedenle:
-
-- **Train:** 2019–2023 (1121 satır)
-- **Validation:** 2024 (255 satır)
-- **Test:** 2025 (248 satır)
-
----
-
-## Modeller
-
-### Baseline
-
-`rolling_mean_3_prev` — son 3 yılın konu ortalaması. Basit ama güçlü bir referans noktası.
-
-### Linear Regression
-
-Doğrusal ilişkileri yakalar. Düşük varyans, yüksek bias riski. Interpretability yüksek.
-
-### Random Forest Regressor
-
-- Özellikler arası etkileşimleri doğrusal olmayan biçimde öğrenir
-- Overfitting'e karşı dayanıklı (bagging)
-- 300 ağaç, max_depth=8
-
-### Gradient Boosting Regressor
-
-- Artık hataları sıralı düzeltir
-- Düşük learning rate (0.05) ile dikkatli öğrenim
-- Genellikle ağırlıklı veri setlerinde daha iyi sonuç verir
-
----
-
-## Metrikler
-
-| Metrik | Açıklama |
-|---|---|
-| **MAE** | Ortalama Mutlak Hata — soru sayısı birimi |
-| **RMSE** | Büyük hatalara daha duyarlı, aykırı değerlerin etkisini vurgular |
-| **lower_bound / upper_bound** | `tahmin ± historical_std_prev` |
-
----
-
-## 2026 Tahmin Çıktısı
-
-`outputs/yks_2026_predictions.csv` kolonları:
-
-| Kolon | Açıklama |
-|---|---|
-| `predicted_question_count` | Ham tahmin (float) |
-| `predicted_question_count_rounded` | Yuvarlanmış tahmin (int) |
-| `lower_bound / upper_bound` | Tahmini aralık |
-| `importance_score` | 0-100 çalışma önceliği skoru |
-| `importance_label` | Çok yüksek / Yüksek / Orta / Düşük |
-| `trend_label` | Artış / Azalış / Stabil eğiliminde |
-| `confidence_label` | Yüksek / Orta / Düşük güven |
-
----
-
-## API Endpointleri
-
-| Method | Endpoint | Açıklama |
-|---|---|---|
-| GET | `/api/health` | Servis sağlığı |
-| GET | `/api/fields` | Desteklenen alanlar |
-| GET | `/api/predictions?field=SAYISAL` | Alan bazlı tahminler (TYT+AYT) |
-| GET | `/api/predictions/subject?field=SAYISAL&subject=Matematik` | Ders bazlı tahminler |
-| GET | `/api/topic-detail?session=AYT&field=SAYISAL&subject=Fizik&topic=Manyetizma` | Konu detayı |
-| POST | `/api/reload` | CSV'yi yeniden yükle |
-
----
-
-## Kurulum ve Çalıştırma
-
-### 1. Python ortamı
+### 1. Veri Toplama
 
 ```bash
-cd yks-topic-predictor
-python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\Scripts\activate
-pip install scikit-learn pandas numpy joblib
+cd src && python scrape_and_build_dataset.py
 ```
 
-### 2. Model eğitimi
+`universitego.com`'dan TYT/AYT konu–soru dağılımlarını scrape eder:
+- 22 tablo (TYT 10 ders + AYT 12 ders)
+- 2018–2025 yılları, 355 benzersiz konu
+- BeautifulSoup ile sağlam HTML parse
+
+### 2. Feature Engineering
+
+Her `(yıl, session, alan, ders, konu)` satırı için:
+
+| Feature | Açıklama | Önem |
+|---|---|---|
+| `rolling_mean_3_prev` | Son 3 yıl ortalaması | **%29.3** |
+| `historical_mean_prev` | Tüm geçmiş yılların ortalaması | **%21.4** |
+| `lag_1` | Geçen yılın soru sayısı | **%16.5** |
+| `rolling_mean_2_prev` | Son 2 yıl ortalaması | **%14.8** |
+| `trend_slope_prev` | Doğrusal trend yönü | %1.7 |
+| `nonzero_frequency_prev` | Kaç yılda soru çıkmış (0–1) | %1.1 |
+| `historical_std_prev` | Tarihsel standart sapma | %1.4 |
+
+### 3. Model Seçimi
+
+Zaman serisi verisi olduğu için **sıkı kronolojik split** (random split kullanılmadı):
+
+```
+Train:      2019–2023  (2650 satır)
+Validation: 2024       (530 satır)
+Test:       2025       (530 satır)
+```
+
+| Model | Val MAE | Test MAE | Test RMSE |
+|---|---|---|---|
+| Baseline (rolling_mean_3) | 0.418 | 0.388 | 0.544 |
+| Random Forest | 0.442 | 0.405 | 0.507 |
+| **Gradient Boosting ✓** | **0.418** | **0.376** | **0.486** |
+
+**Neden Gradient Boosting?** 300 ağaç sıralı çalışır; her ağaç bir öncekinin hatasını düzelterek giderek daha iyi tahmin üretir.
+
+### 4. 2026 Tahmini
+
+```python
+predicted    = model.predict(X_2026)
+lower_bound  = max(0, predicted - historical_std)
+upper_bound  = predicted + historical_std
+
+importance_score = (
+    0.35 * nonzero_frequency   +
+    0.30 * normalize(hist_mean)+
+    0.20 * normalize(trend)    +
+    0.15 * confidence
+) * 100  # → [0, 100]
+```
+
+---
+
+## API Endpoints
+
+**Base URL:** `https://yks-tahmincim.yks-tahmincim.workers.dev`
+
+| Endpoint | Açıklama |
+|---|---|
+| `GET /api/health` | Servis durumu |
+| `GET /api/fields` | Geçerli alan listesi |
+| `GET /api/predictions?field=SAYISAL` | TYT + AYT tahminleri |
+| `GET /api/predictions/subject?field=SAYISAL&subject=Matematik` | Ders bazlı |
+| `GET /api/topic-detail?session=AYT&field=SAYISAL&subject=Fizik&topic=Manyetizma` | Konu detayı |
+| `GET /api/yearly-distribution?session=AYT&field=SAYISAL&subject=Fizik&topic=Manyetizma` | 2018–2025 geçmiş |
+
+---
+
+## Yerel Geliştirme
+
+### Gereksinimler
+
+- Python 3.11+
+- Node.js 20+
+
+### Kurulum
+
+```bash
+git clone https://github.com/ynalbant/yks-topic-predictor.git
+cd yks-topic-predictor
+
+# Python bağımlılıkları
+pip install pandas scikit-learn numpy scipy beautifulsoup4 joblib fastapi uvicorn
+
+# Veri topla + model eğit + tahmin üret (hepsi bir komutta)
+cd src && python scrape_and_build_dataset.py
+
+# Backend başlat
+cd .. && uvicorn backend.main:app --port 8000
+
+# Frontend (ayrı terminal)
+cd frontend && npm install && npm run dev
+# Tarayıcı: http://localhost:3000
+```
+
+---
+
+## Deploy (Cloudflare — Ücretsiz)
+
+### Worker API
+
+```bash
+cd worker
+wrangler login
+npm run db:create           # D1 veritabanı oluştur
+# wrangler.toml içindeki database_id'yi gerçek değerle değiştir
+npm run db:migrate:remote   # 530 tahmin + 4240 yıllık veriyi yükle
+npm run deploy              # API'yi yayınla
+```
+
+### Frontend (Cloudflare Pages)
+
+```bash
+cd frontend
+NEXT_PUBLIC_API_URL=https://yks-tahmincim.yks-tahmincim.workers.dev \
+  npx @cloudflare/next-on-pages
+wrangler pages deploy .vercel/output/static \
+  --project-name yks-tahmincim-frontend
+```
+
+---
+
+## Veri Güncelleme (Yeni Yıl Verisi Geldiğinde)
 
 ```bash
 cd src
-python train_model.py
-```
 
-### 3. 2026 tahmini üret
+# 1. Siteyi yeniden scrape et (yeni yıl eklendi mi?)
+python scrape_and_build_dataset.py
 
-```bash
-python predict_2026.py
-```
+# 2. Modeli yeniden eğit + 2026 tahminlerini güncelle
+python rebuild_from_raw.py
 
-### 4. Backend başlat
-
-```bash
-pip install -r backend/requirements.txt
-uvicorn backend.main:app --reload --port 8000
-```
-
-API dokümantasyonu: `http://localhost:8000/docs`
-
-### 5. Notebook analizi
-
-```bash
-pip install jupyter matplotlib
-cd notebooks
-jupyter notebook
+# 3. D1'i güncelle
+cd ../worker
+python scripts/csv_to_sql.py       # Yeni SQL migration oluştur
+npm run db:migrate:remote           # Cloudflare'e yükle
 ```
 
 ---
 
-## Alan Bazlı TYT / AYT Dersleri
+## Sınırlılıklar
 
-| Alan | AYT Dersleri |
-|---|---|
-| SAYISAL | Matematik, Fizik, Kimya, Biyoloji |
-| ESIT_AGIRLIK | Matematik, Türk Dili ve Edebiyatı, Tarih-1, Coğrafya-1 |
-| SOZEL | Türk Dili ve Edebiyatı, Tarih-1, Coğrafya-1, Tarih-2, Coğrafya-2, Felsefe Grubu, Din Kültürü |
-
-TYT tüm alanlar için ortaktır (`field=ALL`).
+- **Kesin tahmin değil:** YKS soruları ÖSYM tarafından belirlenir
+- **Veri kalitesi:** Konu etiketleri web scraping ile alındı, hata payı var
+- **Küçük dataset:** 8 yıl verisi (2018–2025), istatistiksel güç sınırlı
+- **Doğal değişkenlik:** Konuların yıldan yıla ~0.88 soru std sapması var (indirgenemez gürültü)
 
 ---
 
-*Bu proje YKS hazırlığında veri odaklı karar almayı desteklemek amacıyla geliştirilmiştir. Tahminler istatistiksel örüntülere dayanır; sınav soruları ÖSYM tarafından belirlenir.*
+## Lisans
+
+MIT — Serbestçe kullanabilir, değiştirebilir ve dağıtabilirsiniz.
+
+---
+
+*YKS'ye hazırlanan herkese başarılar! 🎓*

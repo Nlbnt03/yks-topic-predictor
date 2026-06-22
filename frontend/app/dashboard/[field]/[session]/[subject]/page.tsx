@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getSubjectTopics } from '@/lib/api';
@@ -9,10 +10,11 @@ import type { Field } from '@/lib/types';
 
 type Params = { field: string; session: string; subject: string };
 
-export default async function SubjectPage({ params }: { params: Params }) {
-  const field = params.field as Field;
-  const session = decodeURIComponent(params.session);
-  const subject = decodeURIComponent(params.subject);
+export default async function SubjectPage({ params }: { params: Promise<Params> }) {
+  const { field: fieldParam, session: sessionParam, subject: subjectParam } = await params;
+  const field = fieldParam as Field;
+  const session = decodeURIComponent(sessionParam);
+  const subject = decodeURIComponent(subjectParam);
 
   if (!['SAYISAL', 'ESIT_AGIRLIK', 'SOZEL'].includes(field)) notFound();
 

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPredictions } from '@/lib/api';
@@ -18,22 +19,31 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
   );
 }
 
-export default async function DashboardPage({ params }: { params: { field: string } }) {
-  const field = params.field as Field;
+export default async function DashboardPage({ params }: { params: Promise<{ field: string }> }) {
+  const { field: fieldParam } = await params;
+  const field = fieldParam as Field;
   if (!VALID_FIELDS.includes(field)) notFound();
 
   const meta = FIELD_META[field];
   let data;
+  let fetchError: string | null = null;
   try {
     data = await getPredictions(field);
-  } catch {
+  } catch (e) {
+    fetchError = e instanceof Error ? e.message : String(e);
+  }
+
+  if (fetchError || !data) {
     return (
       <div className="text-center py-20">
         <p className="text-4xl mb-4">⚠️</p>
-        <p className="text-lg font-semibold text-gray-700">Backend'e bağlanılamadı</p>
-        <p className="text-gray-500 text-sm mt-1">
-          Lütfen <code className="bg-gray-100 px-1 rounded">uvicorn backend.main:app --port 8000</code> komutunu çalıştırın.
-        </p>
+        <p className="text-lg font-semibold text-gray-700">API'ye bağlanılamadı</p>
+        <p className="text-gray-500 text-sm mt-1">Veri yüklenirken bir hata oluştu.</p>
+        {fetchError && (
+          <code className="block mt-2 text-xs bg-red-50 text-red-700 px-3 py-2 rounded max-w-lg mx-auto break-all">
+            {fetchError}
+          </code>
+        )}
         <Link href="/" className="mt-6 inline-block text-sm text-blue-600 hover:underline">← Ana sayfaya dön</Link>
       </div>
     );

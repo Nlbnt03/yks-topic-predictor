@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTopicDetail, getYearlyDistribution } from '@/lib/api';
@@ -20,11 +21,12 @@ function DetailRow({ label, value, sub }: { label: string; value: React.ReactNod
   );
 }
 
-export default async function TopicDetailPage({ params }: { params: Params }) {
-  const field = params.field as Field;
-  const session = decodeURIComponent(params.session);
-  const subject = decodeURIComponent(params.subject);
-  const topic = decodeURIComponent(params.topic);
+export default async function TopicDetailPage({ params }: { params: Promise<Params> }) {
+  const { field: fieldParam, session: sessionParam, subject: subjectParam, topic: topicParam } = await params;
+  const field = fieldParam as Field;
+  const session = decodeURIComponent(sessionParam);
+  const subject = decodeURIComponent(subjectParam);
+  const topic = decodeURIComponent(topicParam);
 
   if (!['SAYISAL', 'ESIT_AGIRLIK', 'SOZEL'].includes(field)) notFound();
 

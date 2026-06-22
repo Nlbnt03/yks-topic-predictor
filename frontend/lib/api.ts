@@ -3,7 +3,7 @@ import { FieldPredictions, TopicPrediction, YearlyDistribution } from './types';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
 async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API}${path}`, { cache: 'no-store' });
+  const res = await fetch(`${API}${path}`);
   if (!res.ok) {
     const detail = await res.text().catch(() => res.statusText);
     throw new Error(detail || `HTTP ${res.status}`);

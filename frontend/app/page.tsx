@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import Link from 'next/link';
 import { Disclaimer } from '@/components/ui/Disclaimer';
 import { FIELD_META } from '@/lib/utils';

@@ -28,15 +28,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm">
       <p className="font-semibold text-gray-700">{label}</p>
       <p className="text-gray-600">Soru sayısı: <span className="font-bold">{d.count}</span></p>
-      {!d.is_real && <p className="text-xs text-gray-400 italic">Bu yıl veri yok (0 soru)</p>}
+      {!d.is_zero_filled
+        ? null
+        : <p className="text-xs text-gray-400 italic">Bu yıl veri yok (0 soru)</p>
+      }
     </div>
   );
 };
 
 export function YearlyTrendChart({ data, prediction, lowerBound, upperBound }: Props) {
   const chartData = [
-    ...data.map(d => ({ year: d.year, count: d.count, is_real: d.is_real })),
-    { year: 2026, count: null, prediction: Math.round(prediction), is_real: true },
+    ...data.map(d => ({ year: d.year, count: d.count, is_zero_filled: d.is_zero_filled })),
+    { year: 2026, count: null, prediction: Math.round(prediction), is_zero_filled: false },
   ];
 
   return (
@@ -65,7 +68,7 @@ export function YearlyTrendChart({ data, prediction, lowerBound, upperBound }: P
             {chartData.map((d, i) => (
               <Cell
                 key={`h-${i}`}
-                fill={d.year === 2026 ? 'transparent' : d.is_real ? '#60a5fa' : '#e5e7eb'}
+                fill={d.year === 2026 ? 'transparent' : d.is_zero_filled ? '#e5e7eb' : '#60a5fa'}
               />
             ))}
           </Bar>

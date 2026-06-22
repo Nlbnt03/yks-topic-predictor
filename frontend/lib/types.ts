@@ -31,7 +31,7 @@ export interface FieldPredictions {
 export interface YearlyDataPoint {
   year: number;
   count: number;
-  is_real: boolean;
+  is_zero_filled: boolean;
 }
 
 export interface YearlyDistribution {

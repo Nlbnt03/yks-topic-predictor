@@ -23,3 +23,8 @@ outputs/prediction_summary.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+frontend/.vercel/
+frontend/.next/
+worker/.vercel/
